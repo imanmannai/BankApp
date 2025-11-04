@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 
 namespace BankApp
 {
-    internal class BankOwner : User
+    internal class SystemOwner : Admin
     {
-        public decimal MaxLoanMultiplier { get; set; } = 5; // e.g., 5 means max loan = 5 × total deposits
+        public string OwnerID { get; set; } // Unique identifier for the system owner
+        public string Name { get; set; } // System owner's full name
+        public int MaxLoanMultiplier { get; set; } = 5; // e.g., 5 means max loan = 5 × total deposits
+
 
         // List<Account> is the collection of all accounts to loop through
         public void ViewAllAccounts(List<Account> accounts)
@@ -30,7 +33,7 @@ namespace BankApp
         }
 
         // e.g., “max loan = 5× total deposits”
-        public void SetLoanPolicy(decimal maxLoanMultiplier)
+        public void SetLoanPolicy(int maxLoanMultiplier)
         {
             MaxLoanMultiplier = maxLoanMultiplier;
         }
