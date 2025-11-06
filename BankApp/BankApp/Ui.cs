@@ -67,9 +67,6 @@ namespace BankApp
                 case "Admin":
                     ShowAdminMenu(user);
                     break;
-                case "SystemOwner":
-                    ShowSystemOwnerMenu(user);
-                    break;
                 default:
                     Console.WriteLine("Unknown role!");
                     break;
@@ -92,7 +89,8 @@ namespace BankApp
                 Console.WriteLine("2. Deposit Funds");
                 Console.WriteLine("3. Withdraw Funds");
                 Console.WriteLine("4. List Accounts");
-                Console.WriteLine("5. Logout");
+                Console.WriteLine("5.Create Loan");
+                Console.WriteLine("6. Logout");
                 Console.Write("Choose: ");
 
                 switch (Console.ReadLine())
@@ -119,6 +117,22 @@ namespace BankApp
                         cust.ListAccounts();
                         break;
                     case "5":
+                        Console.Write("Loan Id: ");
+                        string loanId = Console.ReadLine();
+                        Console.Write("Principal amount: ");
+                        decimal principalAmount = Convert.ToDecimal(Console.ReadLine());
+                        Console.Write("Interest rate(Perscent): ");
+                        float interestRate = float.Parse(Console.ReadLine());
+
+                        DateTime StartDate = DateTime.Now;
+
+                        Console.Write("Due date(yyyy-mm-dd) ");
+                        DateTime DueDate = DateTime.Parse(Console.ReadLine());
+
+                        Loan newloan = new Loan(principalAmount, interestRate, StartDate, DueDate);
+                        Console.WriteLine($"Loan created! Outstanding amount: {newloan.OutstandingAmount}");
+                        break;
+                    case "6":
                         loggedIn = false;
                         break;
                     default:
@@ -182,42 +196,5 @@ namespace BankApp
         // ----------------------------------------------------------
         // Menu SystemOwner
         // ----------------------------------------------------------
-        static void ShowSystemOwnerMenu(Dictionary<string, object> user)
-        {
-            SystemOwner systemowner = new SystemOwner();
-            bool loggedIn = true;
-
-            while (loggedIn)
-            {
-                Console.Clear();
-                Console.WriteLine($"Welcome {user["Username"]} (System Owner)");
-                Console.WriteLine("1. Set Max Loan Limit");
-                Console.WriteLine("2. Restrict Failed Logins");
-                Console.WriteLine("3. Logout");
-                Console.Write("Choose: ");
-
-                switch (Console.ReadLine())
-                {
-                    case "1":
-                        systemowner.SetLoanPolicy(5);
-                        break;
-                    case "2":
-                        
-                        break;
-                    case "3":
-                        loggedIn = false;
-                        break;
-                    default:
-                        Console.WriteLine("Invalid choice.");
-                        break;
-                }
-
-                if (loggedIn)
-                {
-                    Console.WriteLine("\nPress any key to continue...");
-                    Console.ReadKey();
-                }
-            }
-        }
     }
 }

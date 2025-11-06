@@ -8,6 +8,13 @@ namespace BankApp
 {
     internal class Customer : Admin
     {
+        // Global lists shared across the system: 
+        // TransactionList stores all transactions made in the bank,
+        // CurrencyRates holds all defined currency exchange rates.
+
+        public static List<Transaction> TransactionList = new List<Transaction>();
+
+        public static List<CurrencyRate> CurrencyRates = new List<CurrencyRate>();
         public string Name { get; set; } // Customer's full name    
         public string CustomerID { get; set; } // Unique identifier for the customer
 
@@ -17,60 +24,59 @@ namespace BankApp
 
         public List<Loan> Loans { get; set; } = new List<Loan>(); // List of customer's loans
 
-        public List<Transaction> Transactions { get; set; } 
 
 
-        
+
+
         public void CreateAccount()
         {
-            Account newAccount = new Account();
+            Console.Write("Choose currency (SEK/EUR/USD): ");
+            string curr = Console.ReadLine()?.Trim().ToUpper();
+            if (string.IsNullOrWhiteSpace(curr)) curr = "SEK";
+
+            var newAccount = new Account(currency: curr, initialBalance: 0m);
             Accounts.Add(newAccount); // Add the new account to the customer's account list
+
+            Console.WriteLine($"Account created! Number: {newAccount.AccountNumber} | Currency: {newAccount.Currency} | Balance: {newAccount.Balance}");
         }
 
         public void WithdrawFunds(string accountNumber, decimal amount)
         {
-            foreach (var account in Accounts)
+            var acc = GetAccountByNumber(accountNumber);
+            if (acc == null)
             {
-                if (account.AccountNumber == accountNumber) // Find the matching account
-                {
-                    if (account.Balance >= amount)
-                    {
-                        account.Balance -= amount;
-                        Console.WriteLine($"Withdrawal of {amount} successful. New balance: {account.Balance}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Insufficient funds for this withdrawal.");
-                    }
-                    return; // Exit after processing the account
-                }
+                Console.WriteLine("Account not found.");
+                return;
             }
 
-            Console.WriteLine("Account not found."); // If no matching account is found
+            acc.Withdraw(amount);
         }
+
 
         public void DepositFunds(string accountNumber, decimal amount)
         {
-            foreach (var account in Accounts)
+            var acc = GetAccountByNumber(accountNumber);
+            if (acc == null)
             {
-                if (account.AccountNumber == accountNumber)
-                {
-                        account.Balance += amount;
-                        Console.WriteLine($"Deposit of {amount} successful. New balance: {account.Balance}");
-                   
-                        return; 
-                }
+                Console.WriteLine("Account not found.");
+                return;
             }
 
-            Console.WriteLine("Account not found."); 
+            acc.Deposit(amount); // All validation happens in the account class
         }
+
 
         public void ListAccounts()
         {
-            foreach (var account in Accounts)
+            if (Accounts.Count == 0)
             {
-                Console.WriteLine($"Account Number: {account.AccountNumber}, Balance: {account.Balance}, Status: {account.Status}");
+                Console.WriteLine("No accounts yet.");
+                return;
             }
+
+            Console.WriteLine("Your accounts:");
+            foreach (var account in Accounts)
+                Console.WriteLine($"Bankgiro: {account.AccountNumber} | {account.Currency} | Balance: {account.Balance} | Status: {account.Status}");
         }
 
         public void TransferBetweenOwnAccounts(decimal amount)
@@ -147,10 +153,7 @@ namespace BankApp
         public void ApplyForLoan(decimal loanAmount, SystemOwner owner)
         {
             
-            // TODO: If allowed, create a new Loan object (use Loan constructor) and add it to Loans list
-            // TODO: Otherwise, display a message that the loan request exceeds allowed limit
-
-            decimal totalBalance = 0; 
+           decimal totalBalance = 0; 
 
             foreach (var account in Accounts)
             {
@@ -164,7 +167,9 @@ namespace BankApp
                 var loanAccount = GetAccountByNumber(accountNumber);
                 if (loanAccount != null)
                 {
-                    loanAccount.Balance += loanAmount;
+                    Loan loan = new Loan(loanAmount, 5f, DateTime.Now, DateTime.Now.AddYears(1)); // Create loan object from Loan class constructor
+                    Loans.Add(loan); // Loans list object was created globally in this class
+                    loanAccount.Balance += loanAmount; // Add the loan amount to the account in question 
                 }
                 else
                 {
@@ -172,15 +177,29 @@ namespace BankApp
                 }
 
             }
+            else
+            {
+                Console.WriteLine("Loan amount is too high.");
+            }
 
         }
 
         public void TransactionHistory()
         {
+            foreach (var transaction in TransactionList) // uses the shared list.
+            {
+                transaction.PrintTransaction(); // Leverages the existing PrintTransaction() method from Transaction class
+            }
         }
 
+        // Loops through all available currency rates and prints each conversion pair 
+        // (e.g., USD → EUR) along with its current exchange rate.
         public void ViewCurrencyExchangeRates()
         {
+            foreach (var rate in CurrencyRate.rates)
+            {
+                Console.WriteLine($"{rate.Key.From} {rate.Key.To} {rate.Value}");
+            }
         }
 
         public Account GetAccountByNumber(string accountNumber) // Helper method for finding accounts
